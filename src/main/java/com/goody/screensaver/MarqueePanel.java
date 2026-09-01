@@ -145,9 +145,10 @@ public final class MarqueePanel extends JPanel {
             text = " ";
         }
 
+        // Use FAMILY/SIZE instead of FONT. If FONT is set, Java ignores WEIGHT and
+        // POSTURE, which is why underline (a separate decoration) still worked.
         Font customFont = new Font(config.getFontFamily(), Font.PLAIN, config.getFontSize());
         AttributedString attributed = new AttributedString(text);
-        attributed.addAttribute(TextAttribute.FONT, customFont);
         attributed.addAttribute(TextAttribute.FAMILY, customFont.getFamily());
         attributed.addAttribute(TextAttribute.SIZE, (float) customFont.getSize());
         attributed.addAttribute(TextAttribute.FOREGROUND, config.getTextColor());
