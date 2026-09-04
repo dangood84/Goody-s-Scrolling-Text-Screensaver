@@ -57,6 +57,18 @@ Settings from the dialog are persisted, so `--fullscreen` uses the last saved lo
 
 The live preview in the dialog uses the same scrolling renderer as full screen.
 
+## OS-native ports
+
+This Java app is the cross-platform reference. Native installers live in **sibling folders** (not inside this repo):
+
+| Folder | Target | What it actually installs |
+|--------|--------|---------------------------|
+| `../GoodysScrollingTextScreensaverV2Mac` | macOS Sonoma+ | Native `.saver` for System Settings (no paid Apple Developer ID needed on the Mac that builds it) |
+| `../GoodysScrollingTextScreensaverV2Win` | Windows 10+ | `.scr` launcher around the Java jar |
+| `../GoodysScrollingTextScreensaverV2Lin` | Linux / Raspberry Pi OS | `.desktop` + xscreensaver hook around the Java jar |
+
+A JAR cannot appear in macOS System Settings or as a Windows `.scr` by itself. See each folder’s README.
+
 ## Project layout
 
 ```
