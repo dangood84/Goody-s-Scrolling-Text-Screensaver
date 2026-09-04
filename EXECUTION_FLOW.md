@@ -99,7 +99,7 @@ Swing will also schedule an initial paint of the panel (empty or first layout) i
 
 **13. Later ticks:**
 
-```text
+```java
 now            = System.nanoTime()
 elapsedSeconds = min((now - lastNanos) / 1e9, 0.05)   // cap 50 ms
 lastNanos      = now
@@ -156,7 +156,7 @@ State after a tick: **`x` changed**; pixels on screen have not, until the draw p
 
 **20.** Metrics → tiling distance:
 
-```text
+```java
 textWidth = layout.getAdvance()
 gap       = max(96, ascent * 2.5)
 stride    = max(1, textWidth + gap)     // stored for the *next* onFrame wrap
@@ -168,7 +168,7 @@ stride    = max(1, textWidth + gap)     // stored for the *next* onFrame wrap
 
 **23.** Horizontal tiling:
 
-```text
+```java
 drawX = (float) x
 while (drawX > 0)        drawX -= stride     // start off the left edge
 while (drawX < width)
