@@ -155,7 +155,7 @@ This is **not** a classic game loop on a worker thread (`while (running) { updat
 
 It is a **Swing timer loop** on the EDT:
 
-```
+```Java
 javax.swing.Timer (~16 ms, 60 FPS)
     → onFrame()           // update position
         → repaint()       // ask Swing to paint later
@@ -164,7 +164,7 @@ javax.swing.Timer (~16 ms, 60 FPS)
 
 ### Timer setup
 
-```text
+```java
 TARGET_FPS = 60
 FRAME_DELAY_MS = round(1000 / 60)  → 17 ms
 timer = new Timer(FRAME_DELAY_MS, event -> onFrame())
@@ -211,7 +211,7 @@ Direction: **right to left** (classic marquee). `x` decreases over time.
 
 ### Horizontal speed (in `onFrame`)
 
-```text
+```java
 now = System.nanoTime()
 elapsedSeconds = (now - lastNanos) / 1_000_000_000
 elapsedSeconds = min(elapsedSeconds, 0.05)     // cap so a pause does not jump
@@ -229,7 +229,7 @@ First tick only stores `lastNanos` and `repaint()`s; it does not move, so the fi
 
 `stride` is the distance from the start of one text copy to the next:
 
-```text
+```java
 textWidth = layout.getAdvance()           // width of the attributed string
 gap       = max(96, ascent * 2.5)         // space between repeats
 stride    = max(1, textWidth + gap)
@@ -237,7 +237,7 @@ stride    = max(1, textWidth + gap)
 
 After moving:
 
-```text
+```java
 while (stride > 0 && x < -stride)
     x = x + stride
 ```
@@ -248,7 +248,7 @@ So `x` stays in a bounded range. Visually the band is endless; mathematically on
 
 Until the first successful paint:
 
-```text
+```java
 if (!startedFromRight)
     x = getWidth()          // start just off the right edge
     startedFromRight = true
@@ -260,7 +260,7 @@ The message enters from the right instead of popping in at `x = 0`.
 
 One `TextLayout` is drawn in a loop:
 
-```text
+```java
 drawX = (float) x
 while (drawX > 0)
     drawX -= stride          // walk left until we start off-screen
@@ -274,7 +274,7 @@ That is why you always see text: copies are tiled every `stride` pixels. `x` onl
 
 ### Vertical centering
 
-```text
+```java
 baselineY = (panelHeight + ascent - descent) / 2
 ```
 
