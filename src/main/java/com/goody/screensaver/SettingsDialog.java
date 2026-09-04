@@ -28,15 +28,21 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 /**
- * Configuration dialog for marquee text, colors, font family/size, and styles.
- * Changes are written to {@link java.util.prefs.Preferences} as they happen.
+ * Settings view bound to one {@link ScreensaverConfig}. Controls write the model
+ * immediately; the preview {@link MarqueePanel} rereads that model every paint,
+ * so there is no separate “Apply” step for the live marquee.
  */
 public final class SettingsDialog extends JDialog {
 
     private final ScreensaverConfig config;
+    /**
+     * dispose() always fires windowClosed. When we leave for full screen we must
+     * not System.exit, or the saver never appears.
+     */
     private boolean launchingScreensaver;
 
     public SettingsDialog(ScreensaverConfig config) {
+        // null owner: this is the primary window, not a child of another Frame.
         super((Frame) null, "Goody's Scrolling Text Screensaver", false);
         this.config = config;
 
@@ -83,12 +89,15 @@ public final class SettingsDialog extends JDialog {
         constraints.weightx = 1;
 
         var messageField = new JTextField(config.getMessage(), 32);
+        // JTextField has no simple “on every keystroke” listener; the Document is the model
+        // behind the field. insert/remove both fire as the user types.
         messageField.getDocument().addDocumentListener(onTextChange(() -> persist(() -> config.setMessage(messageField.getText()))));
         addRow(form, constraints, 0, "Message", messageField);
 
         var fontBox = new JComboBox<>(ScreensaverConfig.availableFontFamilies());
         fontBox.setSelectedItem(config.getFontFamily());
         fontBox.addItemListener(event -> {
+            // Combo boxes fire DESELECTED then SELECTED; ignore the first or we persist twice.
             if (event.getStateChange() == ItemEvent.SELECTED && fontBox.getSelectedItem() instanceof String family) {
                 persist(() -> config.setFontFamily(family));
             }
@@ -146,6 +155,8 @@ public final class SettingsDialog extends JDialog {
     private JPanel buildPreviewAndActions() {
         var south = new JPanel(new BorderLayout(0, 10));
 
+        // Same class as full screen, same config instance: checkbox changes are visible
+        // on the next timer paint without wiring a custom listener into MarqueePanel.
         var preview = new MarqueePanel(config);
         preview.setPreferredSize(new Dimension(600, 110));
         preview.setBorder(BorderFactory.createLineBorder(new Color(40, 40, 40)));
@@ -175,6 +186,7 @@ public final class SettingsDialog extends JDialog {
         new MarqueeFrame(config.copy(), () -> System.exit(0)).showFullScreen();
     }
 
+    /** Mutate the in-memory model, then flush Preferences so a crash still keeps the last edit. */
     private void persist(Runnable update) {
         update.run();
         config.save();

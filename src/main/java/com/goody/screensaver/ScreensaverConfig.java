@@ -12,8 +12,10 @@ import java.util.prefs.Preferences;
 import java.util.stream.Stream;
 
 /**
- * Mutable settings for the scrolling marquee. Values are persisted with
- * {@link Preferences} so they reload automatically on the next launch.
+ * Mutable appearance/speed model. This is not window state ({@code x} lives on
+ * {@link MarqueePanel}). {@link Preferences} writes to the OS user store
+ * (Windows registry / macOS defaults / Linux file under the home directory),
+ * not a file in the project, so values survive relaunch.
  */
 public final class ScreensaverConfig {
 
@@ -49,6 +51,10 @@ public final class ScreensaverConfig {
     private Color backgroundColor = new Color(DEFAULT_BACKGROUND_COLOR, true);
     private int pixelsPerSecond = DEFAULT_PIXELS_PER_SECOND;
 
+    /**
+     * Overlay stored keys onto a fresh instance. Missing keys keep the field
+     * initializers (defaults), which is why a first-ever launch still looks designed.
+     */
     public static ScreensaverConfig load() {
         var config = new ScreensaverConfig();
         config.message = PREFS.get(KEY_MESSAGE, config.message);
@@ -57,6 +63,8 @@ public final class ScreensaverConfig {
         config.bold = PREFS.getBoolean(KEY_BOLD, config.bold);
         config.italic = PREFS.getBoolean(KEY_ITALIC, config.italic);
         config.underline = PREFS.getBoolean(KEY_UNDERLINE, config.underline);
+        // Packed ARGB int is what Preferences can store; the true alpha constructor
+        // preserves the high bits if we ever persist translucent colours.
         config.textColor = new Color(PREFS.getInt(KEY_TEXT_COLOR, config.textColor.getRGB()), true);
         config.backgroundColor = new Color(PREFS.getInt(KEY_BACKGROUND_COLOR, config.backgroundColor.getRGB()), true);
         config.pixelsPerSecond = PREFS.getInt(KEY_PIXELS_PER_SECOND, config.pixelsPerSecond);
@@ -74,12 +82,14 @@ public final class ScreensaverConfig {
         PREFS.putInt(KEY_BACKGROUND_COLOR, backgroundColor.getRGB());
         PREFS.putInt(KEY_PIXELS_PER_SECOND, pixelsPerSecond);
         try {
+            // flush() forces the OS store now; without it, a kill -9 could drop the last edit.
             PREFS.flush();
         } catch (BackingStoreException ex) {
             LOG.log(Level.WARNING, "Unable to persist screensaver preferences", ex);
         }
     }
 
+    /** Snapshot so full-screen is not sharing a live object the dialog might still mutate. */
     public ScreensaverConfig copy() {
         var copy = new ScreensaverConfig();
         copy.message = message;

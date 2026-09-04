@@ -1,7 +1,8 @@
 package com.goody.screensaver;
 
 /**
- * Compatibility entry point; prefer {@link MarqueeSaver}.
+ * Compatibility {@code main} so older run commands still work. All behaviour
+ * lives in {@link MarqueeSaver}; this class only forwards argv.
  */
 public final class ScrollingTextScreensaver {
 
